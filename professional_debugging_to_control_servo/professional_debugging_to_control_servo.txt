@@ -1,0 +1,57 @@
+#include <Servo.h>
+Servo xzjservo;
+int angle;
+byte header;
+byte b1,b2,b3,b4;
+void setup() {
+  Serial.begin(9600);
+  xzjservo.attach(9);
+  delay(1000);
+}
+void loop() {
+  if(Serial.available()>=7){//先确定字节够不够
+    header=Serial.read();
+    if(header==0xA5){//确定包头正确
+      byte b1 = Serial.read(); 
+      byte b2 = Serial.read(); 
+      byte b3 = Serial.read(); 
+      byte b4 = Serial.read();
+      angle = (b4 << 24) | (b3 << 16) | (b2 << 8) | b1;//将数据一个一个解包后再组成一个int类型
+      while (Serial.available() > 0) {//丢弃校验和与包尾
+          Serial.read();
+      }
+      switch(angle){//由于只有四个目标角度，可以使用switch_case使舵机转动到指定角度
+        case 0:
+        xzjservo.write(0);
+        Serial.print("执行角度：");//添加互动语句以便在串口监视器上观察运行
+        Serial.println(angle);
+        delay(1000);
+        break;
+        case 45:
+        xzjservo.write(45);
+        Serial.print("执行角度：");
+        Serial.println(angle);
+        delay(1000);
+        break;
+        case 90:
+        xzjservo.write(90);
+        Serial.print("执行角度：");
+        Serial.println(angle);
+        delay(1000);
+        break;
+        case 180:
+        xzjservo.write(180);
+        Serial.print("执行角度：");
+        Serial.println(angle);
+        delay(1000);
+        break;
+      }
+    }else{
+      for (int i = 0; i < 6; i++) {
+        if (Serial.available() > 0){
+          Serial.read();//如果包头错误直接丢弃
+        }
+      }
+    }
+  }
+}
